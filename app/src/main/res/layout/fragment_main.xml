@@ -37,13 +37,13 @@
     <!--app:layout_scrollFlags="scroll|exitUntilCollapsed">-->
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorAccent"
-        app:layout_behavior="com.myapp.sampleheadercoordinator.ToolbarTimelineBehavior"
-        app:layout_scrollFlags="scroll|enterAlways"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@color/colorAccent"
+    app:layout_behavior="com.myapp.sampleheadercoordinator.ToolbarTimelineBehavior"
+    app:layout_scrollFlags="scroll|enterAlways"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
     <!--</android.support.design.widget.CollapsingToolbarLayout>-->
 
     <!--</android.support.design.widget.AppBarLayout>-->

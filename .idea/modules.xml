@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SampleHeaderCoordinator.iml" filepath="$PROJECT_DIR$/SampleHeaderCoordinator.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sampleheadercoordinator.iml" filepath="$PROJECT_DIR$/sampleheadercoordinator.iml" />
     </modules>
   </component>
 </project>

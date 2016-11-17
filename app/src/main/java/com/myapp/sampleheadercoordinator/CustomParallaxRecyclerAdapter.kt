@@ -2,11 +2,9 @@ package com.myapp.sampleheadercoordinator
 
 import android.support.annotation.LayoutRes
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 
 abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     /**
@@ -49,8 +47,7 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
         fun onParallaxScroll(percentage: Float, offset: Float, parallax: View?)
     }
 
-    private var mHeader: ParallaxWrapper? = null
-    private var frameLayout: FrameLayout? = null
+    private var mHeader: ParallaxOverlayHeader? = null
     private var mOnClickEvent: OnClickEvent? = null
     private var mParallaxScroll: OnParallaxScroll? = null
     private var mRecyclerView: RecyclerView? = null
@@ -60,59 +57,16 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
     var isShouldClipView = true
 
     /**
-     * Translates the adapter in Y
-
-     * @param of offset in px
-     */
-    fun translateHeader(of: Float) {
-        Log.d("custom", "of $of")
-        val ofCalculated = of * scrollMultiplier
-        if (of < frameLayout!!.height) {
-            mHeader!!.translationY = ofCalculated
-        }
-        mHeader!!.setClipY(Math.round(ofCalculated))
-        if (mParallaxScroll != null) {
-            val holder = mRecyclerView!!.findViewHolderForAdapterPosition(0)
-            val left: Float
-            if (holder != null) {
-                left = Math.min(1f, ofCalculated / (mHeader!!.height * scrollMultiplier))
-            } else {
-                left = 1f
-            }
-            mParallaxScroll!!.onParallaxScroll(left, of, mHeader)
-        }
-    }
-
-    /**
      * Set the view as header.
 
      * @param header The inflated header
      * *
      * @param view   The RecyclerView to set scroll listeners
      */
-    fun setParallaxHeader(@LayoutRes header: Int, view: RecyclerView, @LayoutRes overlay: Int = 0) {
+    fun setParallaxHeader(@LayoutRes header: Int, view: RecyclerView) {
         mRecyclerView = view
-
-        frameLayout = FrameLayout(mRecyclerView!!.context)
-        mHeader = ParallaxWrapper(mRecyclerView!!.context, isShouldClipView, header)
-        mHeader!!.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        frameLayout!!.addView(mHeader)
-        if (overlay != 0) {
-            val overlayL = LayoutInflater.from(frameLayout!!.context).inflate(R.layout.overlay, frameLayout!!, true)
-        }
-        frameLayout!!.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-
-        view.setOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView?, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-                if (frameLayout != null) {
-                    translateHeader((if (mRecyclerView!!.layoutManager.getChildAt(0) === frameLayout)
-                        mRecyclerView!!.computeVerticalScrollOffset()
-                    else
-                        mHeader!!.height).toFloat())
-                }
-            }
-        })
+        mHeader = LayoutInflater.from(mRecyclerView!!.context).inflate(header, null, false) as ParallaxOverlayHeader
+        mRecyclerView!!.addOnScrollListener(mHeader?.recyclerViewScrollListener)
     }
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, i: Int) {
@@ -127,18 +81,18 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
     }
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
-        if (i == VIEW_TYPES.HEADER && frameLayout != null) {
-            return ViewHolder(frameLayout!!)
+        if (i == VIEW_TYPES.HEADER && mHeader != null) {
+            return ViewHolder(mHeader!!)
         }
-        if (i == VIEW_TYPES.FIRST_VIEW && frameLayout != null && mRecyclerView != null) {
+        if (i == VIEW_TYPES.FIRST_VIEW && mHeader != null && mRecyclerView != null) {
             val holder = mRecyclerView!!.findViewHolderForAdapterPosition(0)
             if (holder != null) {
-                translateHeader((-holder.itemView.top).toFloat())
+                mHeader?.translateHeader((-holder.itemView.top).toFloat())
             }
         }
         val holder = onCreateViewHolderImpl(viewGroup, this, i)
         if (mOnClickEvent != null) {
-            holder.itemView.setOnClickListener { v -> mOnClickEvent!!.onClick(v, holder.adapterPosition - if (frameLayout == null) 0 else 1) }
+            holder.itemView.setOnClickListener { v -> mOnClickEvent!!.onClick(v, holder.adapterPosition - if (mHeader == null) 0 else 1) }
         }
         return holder
     }
@@ -147,7 +101,7 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
      * @return true if there is a header on this adapter, false otherwise
      */
     fun hasHeader(): Boolean {
-        return frameLayout != null
+        return mHeader != null
     }
 
     fun setOnClickEvent(onClickEvent: OnClickEvent) {
@@ -155,8 +109,8 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
     }
 
     fun setOnParallaxScroll(parallaxScroll: OnParallaxScroll) {
-        mParallaxScroll = parallaxScroll
-        mParallaxScroll!!.onParallaxScroll(0f, 0f, frameLayout)
+        mHeader?.mParallaxScroll = parallaxScroll
+        mHeader?.mParallaxScroll!!.onParallaxScroll(0f, 0f, mHeader)
     }
 
     var data: MutableList<T>
@@ -168,26 +122,26 @@ abstract class CustomParallaxRecyclerAdapter<T>(private var mData: MutableList<T
 
     fun addItem(item: T, position: Int) {
         mData.add(position, item)
-        notifyItemInserted(position + if (frameLayout == null) 0 else 1)
+        notifyItemInserted(position + if (mHeader == null) 0 else 1)
     }
 
     fun removeItem(item: T) {
-        val position = mData!!.indexOf(item)
+        val position = mData.indexOf(item)
         if (position < 0)
             return
         mData.remove(item)
-        notifyItemRemoved(position + if (frameLayout == null) 0 else 1)
+        notifyItemRemoved(position + if (mHeader == null) 0 else 1)
     }
 
 
     override fun getItemCount(): Int {
-        return getItemCountImpl(this) + if (frameLayout == null) 0 else 1
+        return getItemCountImpl(this) + if (mHeader == null) 0 else 1
     }
 
     override fun getItemViewType(position: Int): Int {
         if (position == 1)
             return VIEW_TYPES.FIRST_VIEW
-        return if (position == 0 && frameLayout != null) VIEW_TYPES.HEADER else VIEW_TYPES.NORMAL
+        return if (position == 0 && mHeader != null) VIEW_TYPES.HEADER else VIEW_TYPES.NORMAL
     }
 
     internal class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)

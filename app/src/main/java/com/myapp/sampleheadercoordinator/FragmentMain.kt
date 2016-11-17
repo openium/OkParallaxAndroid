@@ -49,7 +49,7 @@ class FragmentMain : Fragment(), CustomParallaxRecyclerAdapter.OnParallaxScroll 
 //                }
 //            }
 //        })
-        adapter.setParallaxHeader(R.layout.header, recyclerView, R.layout.overlay)
+        adapter.setParallaxHeader(R.layout.pheader, recyclerView)
         adapter.setOnParallaxScroll(this)
 //        collapsing_toolbar.setGooglePlayBehaviour(true)
     }

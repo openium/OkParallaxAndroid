@@ -14,14 +14,17 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
+            android:id="@+id/ll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <View
+            <com.myapp.sampleheadercoordinator.ParallaxOverlayHeader
+                android:id="@+id/parallax"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:background="#ff0000"/>
+                android:layout_height="wrap_content"
+                app:header="@layout/header"
+                app:overlay="@layout/overlay"/>
 
             <View
                 android:layout_width="match_parent"
@@ -57,8 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorAccent"
-        app:layout_behavior="com.myapp.sampleheadercoordinator.ToolbarTimelineBehavior"
-        app:layout_scrollFlags="scroll|enterAlways"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
     <!--</android.support.design.widget.CollapsingToolbarLayout>-->
 
