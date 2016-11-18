@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.myapp.sampleheadercoordinator.ParallaxOverlayHeader
+            <fr.openium.okparallax.ParallaxOverlayHeader
                 android:id="@+id/parallax"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

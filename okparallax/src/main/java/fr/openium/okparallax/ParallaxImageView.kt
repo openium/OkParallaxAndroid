@@ -1,4 +1,4 @@
-package com.myapp.sampleheadercoordinator
+package fr.openium.okparallax
 
 import android.content.Context
 import android.graphics.Canvas
@@ -19,7 +19,7 @@ class ParallaxImageView : ImageView, ParallaxInterface {
         init()
     }
 
-    fun init() {
+    private fun init() {
         delegate = ParallaxDelegate(true)
     }
 

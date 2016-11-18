@@ -1,4 +1,4 @@
-package com.myapp.sampleheadercoordinator
+package fr.openium.okparallax
 
 import android.graphics.Canvas
 import android.graphics.Rect

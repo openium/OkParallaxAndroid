@@ -9,13 +9,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import fr.openium.okparallax.OnParallaxScrollListener
+import fr.openium.okparallax.ParallaxRecyclerDelegate
 import kotlinx.android.synthetic.main.fragment_main.*
 
 
 /**
  * Created by t.coulange on 19/10/2016.
  */
-class FragmentMain : Fragment(), CustomParallaxRecyclerAdapter.OnParallaxScroll {
+class FragmentMain : Fragment(), OnParallaxScrollListener {
     override fun onParallaxScroll(percentage: Float, offset: Float, parallax: View?) {
         val c = toolbar.getBackground()
         if (c != null) {
@@ -34,53 +36,45 @@ class FragmentMain : Fragment(), CustomParallaxRecyclerAdapter.OnParallaxScroll 
 
         recyclerView.layoutManager = LinearLayoutManager(context)
         val adapter = AdapterRecycler()
-//        adapter.setOnParallaxScroll { fl, fl, view ->
-
-//        }
         recyclerView.adapter = adapter
-//        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-//            override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
-//                super.onScrollStateChanged(recyclerView, newState)
-//                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-//                    val firstVisiblePosition = (recyclerView!!.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition();
-//                    if (firstVisiblePosition == 0) {
-//                        appbar.setExpanded(true, true);
-//                    }
-//                }
-//            }
-//        })
-        adapter.setParallaxHeader(R.layout.pheader, recyclerView)
-        adapter.setOnParallaxScroll(this)
-//        collapsing_toolbar.setGooglePlayBehaviour(true)
+        adapter.delegate.setParallaxHeader(R.layout.pheader, recyclerView, this)
     }
 
-    class AdapterRecycler : CustomParallaxRecyclerAdapter<String>(mutableListOf()) {
-        override fun getItemCountImpl(p0: CustomParallaxRecyclerAdapter<String>): Int {
-            return 30
+    class AdapterRecycler : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ParallaxRecyclerDelegate.RecyclerImpl {
+        override fun onBindViewHolderImpl(viewHolder: RecyclerView.ViewHolder, adapter: ParallaxRecyclerDelegate, position: Int) {
+            (viewHolder.itemView as TextView).text = "Item $position"
         }
 
-        override fun onBindViewHolderImpl(holder: RecyclerView.ViewHolder, p1: CustomParallaxRecyclerAdapter<String>, position: Int) {
-            (holder.itemView as TextView).text = "Item $position"
-        }
-
-        override fun onCreateViewHolderImpl(parent: ViewGroup, p1: CustomParallaxRecyclerAdapter<String>, p2: Int): RecyclerView.ViewHolder {
+        override fun onCreateViewHolderImpl(parent: ViewGroup, adapter: ParallaxRecyclerDelegate, i: Int): RecyclerView.ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
             return CustomHolder(view)
         }
 
-//        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-//
-//        }
-//
-//        override fun getItemCount(): Int {
-//            return 30
-//        }
-//
-//        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-//            val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
-//            return CustomHolder(view)
-//        }
+        override fun getItemCountImpl(adapter: ParallaxRecyclerDelegate): Int {
+            return 30
+        }
 
+        val delegate: ParallaxRecyclerDelegate
+
+        init {
+            delegate = ParallaxRecyclerDelegate(this)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            return delegate.onCreateViewHolder(parent, viewType)
+        }
+
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            return delegate.onBindViewHolder(holder, position)
+        }
+
+        override fun getItemCount(): Int {
+            return delegate.getItemCount()
+        }
+
+        override fun getItemViewType(position: Int): Int {
+            return delegate.getItemViewType(position)
+        }
 
         class CustomHolder(view: View) : RecyclerView.ViewHolder(view) {
 

@@ -1,10 +1,9 @@
-package com.myapp.sampleheadercoordinator
+package fr.openium.okparallax
 
 import android.content.Context
 import android.support.v4.widget.NestedScrollView
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
 
@@ -13,7 +12,11 @@ import android.widget.FrameLayout
  * Created by t.coulange on 17/11/2016.
  */
 class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.OnScrollChangeListener {
-    var mParallaxScroll: CustomParallaxRecyclerAdapter.OnParallaxScroll? = null
+    var onParallaxScrollListener: OnParallaxScrollListener? = null
+        set(value) {
+            field = value
+            value?.onParallaxScroll(0f, 0f, this)
+        }
     private var header: View? = null
     private var overlay: View? = null
     private var scrollMultiplier = 0.5f
@@ -28,7 +31,7 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
         init(context, attrs)
     }
 
-    fun init(context: Context, attrs: AttributeSet? = null) {
+    private fun init(context: Context, attrs: AttributeSet? = null) {
 
         attrs?.let {
             val a = context.theme.obtainStyledAttributes(
@@ -42,11 +45,11 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
 
                 if (headerL != 0) {
                     inflate(context, headerL, this)
-                    header = getChildAt(0)
+                    header = getChildAt(childCount - 1)
                 }
                 if (overlayL != 0) {
                     inflate(context, overlayL, this)
-                    overlay = getChildAt(1)
+                    overlay = getChildAt(childCount - 1)
                 }
             } finally {
                 a.recycle()
@@ -69,31 +72,20 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
 
 
     override fun onScrollChange(v: NestedScrollView?, scrollX: Int, scrollY: Int, oldScrollX: Int, oldScrollY: Int) {
-        Log.d("onscroll", "onScrollChange")
-        translateHeader(
-                //                (if (v === frameLayout)
-                v!!.computeVerticalScrollOffset().toFloat()
-//        else
-//            mHeader!!.height).toFloat()
-        )
+        translateHeader(v!!.computeVerticalScrollOffset().toFloat())
     }
-
-    fun setListener(listener: CustomParallaxRecyclerAdapter.OnParallaxScroll) {
-        mParallaxScroll = listener
-        mParallaxScroll?.onParallaxScroll(0f, 0f, this)
-    }
-
 
     fun translateHeader(of: Float) {
-        Log.d("header", "of $of")
         val ofCalculated = of * scrollMultiplier
         if (of < height) {
             header?.translationY = ofCalculated
         }
         (header as? ParallaxInterface)?.getParallaxDelegate()?.setClipY(header!!, Math.round(ofCalculated))
-        if (mParallaxScroll != null) {
+        if (onParallaxScrollListener != null) {
             val left = Math.min(1f, ofCalculated / (header!!.height * scrollMultiplier))
-            mParallaxScroll!!.onParallaxScroll(left, of, header!!)
+            onParallaxScrollListener!!.onParallaxScroll(left, of, header!!)
         }
     }
+
+
 }

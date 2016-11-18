@@ -1,4 +1,5 @@
-package com.myapp.sampleheadercoordinator
+package fr.openium.okparallax
+
 
 /**
  * Created by t.coulange on 17/11/2016.

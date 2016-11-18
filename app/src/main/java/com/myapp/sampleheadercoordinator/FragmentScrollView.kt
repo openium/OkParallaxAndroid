@@ -6,13 +6,15 @@ import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import fr.openium.okparallax.OnParallaxScrollListener
+import fr.openium.okparallax.ParallaxOverlayHeader
 import kotlinx.android.synthetic.main.fragment_scroll.*
 
 
 /**
  * Created by t.coulange on 19/10/2016.
  */
-class FragmentScrollView : Fragment(), CustomParallaxRecyclerAdapter.OnParallaxScroll {
+class FragmentScrollView : Fragment(), OnParallaxScrollListener {
     override fun onParallaxScroll(percentage: Float, offset: Float, parallax: View?) {
         val c = toolbar.getBackground()
         if (c != null) {
@@ -30,7 +32,7 @@ class FragmentScrollView : Fragment(), CustomParallaxRecyclerAdapter.OnParallaxS
         (activity as AppCompatActivity).setSupportActionBar(toolbar)
         val parallax = ll.getChildAt(0) as ParallaxOverlayHeader
         nestedScrollview.setOnScrollChangeListener(parallax)
-        parallax.setListener(this)
+        parallax.onParallaxScrollListener = this
 
     }
 }
