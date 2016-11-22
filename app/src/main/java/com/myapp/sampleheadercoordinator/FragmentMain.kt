@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,20 +38,23 @@ class FragmentMain : Fragment(), OnParallaxScrollListener {
         recyclerView.layoutManager = LinearLayoutManager(context)
         val adapter = AdapterRecycler()
         recyclerView.adapter = adapter
-        adapter.delegate.setParallaxHeader(R.layout.pheader, recyclerView, this)
+        val hw = TestView(context)
+        hw.layoutParams = RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 240f, resources.displayMetrics).toInt())
+        hw.setIVBackground(R.drawable.montagne)
+        adapter.delegate.setParallaxHeader(hw, recyclerView, this)
     }
 
     class AdapterRecycler : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ParallaxRecyclerDelegate.RecyclerImpl {
-        override fun onBindViewHolderImpl(viewHolder: RecyclerView.ViewHolder, adapter: ParallaxRecyclerDelegate, position: Int) {
+        override fun onBindViewHolderImpl(viewHolder: RecyclerView.ViewHolder, position: Int) {
             (viewHolder.itemView as TextView).text = "Item $position"
         }
 
-        override fun onCreateViewHolderImpl(parent: ViewGroup, adapter: ParallaxRecyclerDelegate, i: Int): RecyclerView.ViewHolder {
+        override fun onCreateViewHolderImpl(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
             return CustomHolder(view)
         }
 
-        override fun getItemCountImpl(adapter: ParallaxRecyclerDelegate): Int {
+        override fun getItemCountImpl(): Int {
             return 30
         }
 

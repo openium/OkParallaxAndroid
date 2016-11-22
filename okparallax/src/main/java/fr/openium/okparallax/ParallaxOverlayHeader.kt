@@ -1,6 +1,7 @@
 package fr.openium.okparallax
 
 import android.content.Context
+import android.support.annotation.DrawableRes
 import android.support.v4.widget.NestedScrollView
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
@@ -11,15 +12,15 @@ import android.widget.FrameLayout
 /**
  * Created by t.coulange on 17/11/2016.
  */
-class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.OnScrollChangeListener {
+open class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.OnScrollChangeListener {
     var onParallaxScrollListener: OnParallaxScrollListener? = null
         set(value) {
             field = value
             value?.onParallaxScroll(0f, 0f, this)
         }
-    private var header: View? = null
-    private var overlay: View? = null
-    private var scrollMultiplier = 0.5f
+    var header: View? = null
+    var overlay: View? = null
+    var scrollMultiplier = 0.5f
     lateinit var recyclerViewScrollListener: RecyclerView.OnScrollListener
 
 
@@ -27,12 +28,11 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
         init(context)
     }
 
-    constructor(context: Context, attrs: AttributeSet) : super(context) {
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         init(context, attrs)
     }
 
     private fun init(context: Context, attrs: AttributeSet? = null) {
-
         attrs?.let {
             val a = context.theme.obtainStyledAttributes(
                     attrs,
@@ -42,15 +42,11 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
             try {
                 val headerL = a.getResourceId(R.styleable.ParallaxOverlayHeader_header, 0)
                 val overlayL = a.getResourceId(R.styleable.ParallaxOverlayHeader_overlay, 0)
+                addHeader(headerL)
+                addOverlay(overlayL)
 
-                if (headerL != 0) {
-                    inflate(context, headerL, this)
-                    header = getChildAt(childCount - 1)
-                }
-                if (overlayL != 0) {
-                    inflate(context, overlayL, this)
-                    overlay = getChildAt(childCount - 1)
-                }
+
+                scrollMultiplier = a.getFloat(R.styleable.ParallaxOverlayHeader_multiplier, 0.5f)
             } finally {
                 a.recycle()
             }
@@ -65,6 +61,41 @@ class ParallaxOverlayHeader : FrameLayout, ParallaxInterface, NestedScrollView.O
             }
         }
     }
+
+    fun addHeader(@DrawableRes headerL: Int) {
+        require(header == null, { "header already added" })
+        if (headerL != 0) {
+            inflate(context, headerL, this)
+            header = getChildAt(childCount - 1)
+        }
+    }
+
+    /**
+     * Should be called after addHeader
+     */
+    fun addOverlay(@DrawableRes overlayL: Int) {
+        require(overlay == null, { "overlay already added" })
+        if (overlayL != 0) {
+            inflate(context, overlayL, this)
+            overlay = getChildAt(childCount - 1)
+        }
+    }
+
+    fun addHeader(headerV: View) {
+        require(header == null, { "header already added" })
+        addView(headerV)
+        header = headerV
+    }
+
+    /**
+     * Should be called after addHeader
+     */
+    fun addOverlay(overlayV: View) {
+        require(overlay == null, { "overlay already added" })
+        addView(overlayV)
+        overlay = overlayV
+    }
+
 
     override fun getParallaxDelegate(): ParallaxDelegate {
         return (header as ParallaxInterface).getParallaxDelegate()

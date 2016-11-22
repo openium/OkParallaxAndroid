@@ -3,6 +3,7 @@
     <declare-styleable name="ParallaxOverlayHeader">
         <attr name="header" format="reference"/>
         <attr name="overlay" format="reference"/>
+        <attr name="multiplier" format="float"/>
     </declare-styleable>
 
 </resources>

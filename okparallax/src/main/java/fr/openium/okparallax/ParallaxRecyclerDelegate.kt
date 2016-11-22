@@ -8,17 +8,22 @@ import android.view.ViewGroup
 
 class ParallaxRecyclerDelegate(val impl: RecyclerImpl) {
     object VIEW_TYPES {
-        val NORMAL = 1
-        val HEADER = 2
-        val FIRST_VIEW = 3
+        val NORMAL = 0xaaa
+        val HEADER = 0xaab
+//        val FIRST_VIEW = 0xaac
     }
 
+    var initHeader = false
+
     interface RecyclerImpl {
-        fun onBindViewHolderImpl(viewHolder: RecyclerView.ViewHolder, adapter: ParallaxRecyclerDelegate, i: Int)
+        fun onBindViewHolderImpl(viewHolder: RecyclerView.ViewHolder, position: Int)
 
-        fun onCreateViewHolderImpl(viewGroup: ViewGroup, adapter: ParallaxRecyclerDelegate, i: Int): RecyclerView.ViewHolder
+        fun onCreateViewHolderImpl(viewGroup: ViewGroup, position: Int): RecyclerView.ViewHolder
 
-        fun getItemCountImpl(adapter: ParallaxRecyclerDelegate): Int
+        fun getItemCountImpl(): Int
+        fun getItemViewTypeImpl(position: Int): Int {
+            return VIEW_TYPES.NORMAL
+        }
     }
 
     interface OnClickEvent {
@@ -36,35 +41,42 @@ class ParallaxRecyclerDelegate(val impl: RecyclerImpl) {
     private var mOnClickEvent: OnClickEvent? = null
     private var mRecyclerView: RecyclerView? = null
 
-    fun setParallaxHeader(@LayoutRes header: Int, view: RecyclerView, listener: OnParallaxScrollListener? = null) {
+    fun setParallaxHeader(@LayoutRes headerL: Int, view: RecyclerView, listener: OnParallaxScrollListener? = null) {
+        val header = LayoutInflater.from(view.context).inflate(headerL, null, false) as ParallaxOverlayHeader
+        setParallaxHeader(header, view, listener)
+    }
+
+    fun setParallaxHeader(header: View, view: RecyclerView, listener: OnParallaxScrollListener? = null) {
         mRecyclerView = view
-        mHeader = LayoutInflater.from(mRecyclerView!!.context).inflate(header, null, false) as ParallaxOverlayHeader
+        mHeader = header as ParallaxOverlayHeader
         mHeader?.onParallaxScrollListener = listener
         mRecyclerView!!.addOnScrollListener(mHeader?.recyclerViewScrollListener)
     }
 
-    fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, i: Int) {
+
+    fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
         if (mHeader != null) {
-            if (i == 0) {
+            if (position == 0) {
                 return
             }
-            impl.onBindViewHolderImpl(viewHolder, this, i - 1)
+            impl.onBindViewHolderImpl(viewHolder, position - 1)
         } else {
-            impl.onBindViewHolderImpl(viewHolder, this, i)
+            impl.onBindViewHolderImpl(viewHolder, position)
         }
     }
 
-    fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): RecyclerView.ViewHolder {
-        if (i == VIEW_TYPES.HEADER && mHeader != null) {
+    fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        if (viewType == VIEW_TYPES.HEADER && mHeader != null) {
             return ViewHolder(mHeader!!)
         }
-        if (i == VIEW_TYPES.FIRST_VIEW && mHeader != null && mRecyclerView != null) {
+        if (!initHeader && mHeader != null && mRecyclerView != null) {
             val holder = mRecyclerView!!.findViewHolderForAdapterPosition(0)
             if (holder != null) {
                 mHeader?.translateHeader((-holder.itemView.top).toFloat())
             }
+            initHeader = true
         }
-        val holder = impl.onCreateViewHolderImpl(viewGroup, this, i)
+        val holder = impl.onCreateViewHolderImpl(viewGroup, viewType)
         if (mOnClickEvent != null) {
             holder.itemView.setOnClickListener { v -> mOnClickEvent!!.onClick(v, holder.adapterPosition - if (mHeader == null) 0 else 1) }
         }
@@ -83,13 +95,19 @@ class ParallaxRecyclerDelegate(val impl: RecyclerImpl) {
     }
 
     fun getItemCount(): Int {
-        return impl.getItemCountImpl(this) + if (mHeader == null) 0 else 1
+        return impl.getItemCountImpl() + if (mHeader == null) 0 else 1
     }
 
     fun getItemViewType(position: Int): Int {
-        if (position == 1)
-            return VIEW_TYPES.FIRST_VIEW
-        return if (position == 0 && mHeader != null) VIEW_TYPES.HEADER else VIEW_TYPES.NORMAL
+        return if (mHeader != null) {
+            if (position == 0) {
+                VIEW_TYPES.HEADER
+            } else {
+                impl.getItemViewTypeImpl(position - 1)
+            }
+        } else {
+            impl.getItemViewTypeImpl(position)
+        }
     }
 
     internal class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
