@@ -41,9 +41,10 @@ class ParallaxRecyclerDelegate(val impl: RecyclerImpl) {
     private var mOnClickEvent: OnClickEvent? = null
     private var mRecyclerView: RecyclerView? = null
 
-    fun setParallaxHeader(@LayoutRes headerL: Int, view: RecyclerView, listener: OnParallaxScrollListener? = null) {
+    fun setParallaxHeader(@LayoutRes headerL: Int, view: RecyclerView, listener: OnParallaxScrollListener? = null): View {
         val header = LayoutInflater.from(view.context).inflate(headerL, null, false) as ParallaxOverlayHeader
         setParallaxHeader(header, view, listener)
+        return header
     }
 
     fun setParallaxHeader(header: View, view: RecyclerView, listener: OnParallaxScrollListener? = null) {
